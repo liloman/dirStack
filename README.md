@@ -5,7 +5,8 @@
 Plugin for bash prompt for dir bookmarking.
 [dir bookmarks](http://vincent.bernat.im/en/blog/2015-zsh-directory-bookmarks.html)
 
-The perfect complement for z 
+The perfect complement for [z](https://github.com/rupa/z)
+
 
 ##INSTALL
 

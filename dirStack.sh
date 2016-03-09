@@ -86,16 +86,29 @@ add_dir_stack() {
 
 #Delete dir stack whithout changing dir
 del_dir_stack () { 
+    #if no args then $@=x actual to delete CWD 
+    (( $# == 0 )) && set -- x actual
     #Get dir 1 by default
-    local num=${1:-1}
-    (( $num == 0 )) && num=-1
-    local dest="$(dirs -l +$num 2>/dev/null)"
-    #Empty dir stack, out of range dir index or index=0
-    [[ $dest ]] || { echo "Incorrect dir stack index or empty stack";return;}
-    # check if you want to delete current dir actually (no args)
-    [[ ! $1  &&  $PWD != $dest ]] && return
-    popd -n +$num >/dev/null
-    (( $? == 0 )) && [[ ! $2 ]] && echo Deleted "$dest" from dir stack
+    for args; do
+        local num=${args}
+        [[ $num = actual ]] && break
+        #if the user wants to delete actual dir
+        if [[ $1 = x ]]; then
+            local dir="$(realpath -P "." 2>/dev/null)"
+            readarray -t entries <<<"$(dirs -p -l 2>/dev/null)"
+            #First entry (0) is always $PWD
+            entries=${entries[@]:1}
+            for i in "${!entries[@]}"; do [[ ${entries[$i]} = $dir ]] && num=$i; done
+        fi
+        (( $num == 0 )) && num=-1
+        local dest="$(dirs -l +$num 2>/dev/null)"
+        # check if you actually want to delete current dir (no args)
+        [[ $1 == x  &&  $PWD != $dest ]] && { echo "PWD not in dir stack"; return; }
+        #Empty dir stack, out of range dir index or index=0
+        [[ $dest ]] || { echo "Incorrect dir stack index or empty stack";return; }
+        popd -n +$num >/dev/null
+        [[ $? == 0 && $2 != silent ]] && echo Deleted "$dest" from dir stack
+    done
 }
 
 #Go to a dir stack number. 

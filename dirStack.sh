@@ -88,9 +88,8 @@ add_dir_stack() {
 del_dir_stack () { 
     #if no args then $@=x actual to delete CWD 
     (( $# == 0 )) && set -- x actual
-    #Get dir 1 by default
-    for args; do
-        local num=${args}
+    # for args; do
+        local num=$1
         [[ $num = actual ]] && break
         #if the user wants to delete actual dir
         if [[ $1 = x ]]; then
@@ -108,7 +107,7 @@ del_dir_stack () {
         [[ $dest ]] || { echo "Incorrect dir stack index or empty stack";return; }
         popd -n +$num >/dev/null
         [[ $? == 0 && $2 != silent ]] && echo Deleted "$dest" from dir stack
-    done
+    # done
 }
 
 #Go to a dir stack number. 

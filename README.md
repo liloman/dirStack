@@ -18,7 +18,7 @@ vi .bashrc
 ```
 
 ## TODO
-- [x] del with multiple arguments
+- [ ] del with multiple arguments
 - [ ] Screenshots and tutorial...
 - [ ] Unit testing? (bats)
 

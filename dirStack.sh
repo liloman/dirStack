@@ -19,6 +19,8 @@ DIRSTACK_OLDPWD=
 
 
 #Insert into dir stack checking for repetitions
+# $1 force (boolean)
+# $2 path
 add_dir_stack() { 
     local dir="$(realpath -P "${2:-"."}" 2>/dev/null)"
     [[ -d $dir ]] || { echo "Dir $dir not found";return; }
@@ -35,7 +37,7 @@ add_dir_stack() {
         dup=${dup[@]:1}
         for elem in "${dup[@]}"; do [[ $elem = $dir ]]&& { return; } done
         #Check limit
-        (( ${#dup[@]} > $DIRSTACK_LIMIT )) && del_dir_stack $DIRSTACK_LIMIT silent
+        (( ${#dup[@]} > $DIRSTACK_LIMIT )) && del_dir_stack $DIRSTACK_LIMIT silent  
         pushd -n "$dir" >/dev/null; 
     }
 
@@ -86,81 +88,94 @@ add_dir_stack() {
 
 #Delete dir stack whithout changing dir
 del_dir_stack () { 
-    #if no args then $@=x actual to delete CWD 
+    local -A dirs 
+    local -a entries
+    local dest= dir= del= num
+    #if no args then $@=x actual
     (( $# == 0 )) && set -- x actual
-    # for args; do
-        local num=$1
-        [[ $num = actual ]] && break
+
+    for args; do
+        [[ $args = actual || $args == 0 || $args == silent ]] && break
         #if the user wants to delete actual dir
-        if [[ $1 = x ]]; then
-            local dir="$(realpath -P "." 2>/dev/null)"
-            readarray -t entries <<<"$(dirs -p -l 2>/dev/null)"
-            #First entry (0) is always $PWD
-            entries=${entries[@]:1}
-            for i in "${!entries[@]}"; do [[ ${entries[$i]} = $dir ]] && num=$i; done
+        if [[ $args = x ]]; then
+            dir=$(realpath -P "." 2>/dev/null)
+            #Discard first entry cause it's always $PWD
+            readarray -s 1 -t entries <<<"$(dirs -p -l 2>/dev/null)"
+            for i in ${!entries[@]}; do [[ ${entries[$i]} = $dir ]] && dirs["$dir"]=del; done
+            # check if you actually want to delete current dir (no args)
+            (( ${#dirs[@]} == 0 )) && { echo "PWD not in dir stack"; return; }
+        else
+            dest=$(dirs -l +$args 2>/dev/null)
+            dir=$(realpath -P "$dest" 2>/dev/null)
+            [[ $dir ]] || { echo "Incorrect dir stack index ($args) or empty stack";return; }
+            dirs["$dir"]=del
         fi
-        (( $num == 0 )) && num=-1
-        local dest="$(dirs -l +$num 2>/dev/null)"
-        # check if you actually want to delete current dir (no args)
-        [[ $1 == x  &&  $PWD != $dest ]] && { echo "PWD not in dir stack"; return; }
-        #Empty dir stack, out of range dir index or index=0
-        [[ $dest ]] || { echo "Incorrect dir stack index or empty stack";return; }
-        popd -n +$num >/dev/null
-        [[ $? == 0 && $2 != silent ]] && echo Deleted "$dest" from dir stack
-    # done
-}
+    done
 
-#Go to a dir stack number. 
-go_dir_stack() { 
-    #Get absolute path
-    local dir="$(dirs -l +$1 2>/dev/null)"
-    [[ $dir ]] || { echo "Incorrect dir stack index or empty stack";return;}
-    cd "$dir" && echo Changed dir to "$dir"
-}
-
-#Show the dir stack below the bash prompt
-list_dir_stack() {
-    [[ ${DIRSTACK_ENABLED} != true ]] && return
-    local Orange='\e[00;33m'
-    local back='\e[00;44m'
-    local Reset='\e[00m'
-    local Green='\e[01;32m'
-    #Copy & Paste from any unicode table... 
-    local one=$(printf "%s" ✪)
-    local two=$(printf "%s" ✪)
-    local cwd="$(pwd -P)"
-    local i=0 
-    local com="dirs -p -l"
-
-    echo -e "${Green}${one} $USER$(__git_ps1 "(%s)") on $TTY@$HOSTNAME($KERNEL)"
-    echo -ne "${Orange}${two} "
-    add_dir_stack false "$cwd"
-
-    #Must use IFS= to not remove trailing whitespaces by process substitution
-    while IFS= read -r dir; do 
-        if (( $i > 0 )); then 
-            if [[ $dir == $cwd ]]; then #Put background color
-                echo -ne "[${back}$i:${dir/$HOME/\~}${Orange}]";
-            else
-                echo -ne "[$i:${dir/$HOME/\~}]";
+    for key in "${!dirs[@]}"; do
+        del=$key
+        #Discard first entry cause it's always $PWD
+        readarray -s 1 -t entries <<<"$(dirs -p -l 2>/dev/null)"
+        for i in "${!entries[@]}"; do 
+            if [[ ${entries[$i]} = $del ]]; then
+                popd -n +$((i+1)) >/dev/null; 
+                [[ $? == 0 && $2 != silent ]] && echo Deleted "$del" from dir stack
             fi
-        fi
-        ((i++))
-    done < <($com)
-    (( $i == 1 )) && echo -ne "${two} ${Orange}Empty dir stack(a add,d delete,g go number,~num = dir)";
+        done
+    done
+    }
 
-    #Print newline for PS1
-    echo -e "${Reset}"
-}
+    #Go to a dir stack number. 
+    go_dir_stack() { 
+        #Get absolute path
+        local dir="$(dirs -l +$1 2>/dev/null)"
+        [[ $dir ]] || { echo "Incorrect dir stack index or empty stack";return;}
+        cd "$dir" && echo Changed dir to "$dir"
+    }
+
+    #Show the dir stack below the bash prompt
+    list_dir_stack() {
+        [[ ${DIRSTACK_ENABLED} != true ]] && return
+        local cwd="$(pwd -P)"
+        add_dir_stack false "$cwd"
+
+        local -a entries
+        local Orange='\e[00;33m'
+        local back='\e[00;44m'
+        local Reset='\e[00m'
+        local Green='\e[01;32m'
+        #Copy & Paste from any unicode table... 
+        local one=$(printf "%s" ✪)
+        local two=$(printf "%s" ✪)
+        local i=0 
+
+        echo -e "${Green}${one} $USER$(__git_ps1 "(%s)") on $TTY@$HOSTNAME($KERNEL)"
+        echo -ne "${Orange}${two} "
+
+        #Discard first entry cause it's always $PWD
+        readarray -s 1 -t entries <<<"$(dirs -p -l 2>/dev/null)"
+        for i in ${!entries[@]}; do 
+            dir=${entries[$i]} 
+            if [[ $dir == $cwd ]]; then #Put background color
+                echo -ne "[${back}$((i+1)):${dir/$HOME/\~}${Orange}]";
+            else
+                echo -ne "[$((i+1)):${dir/$HOME/\~}]";
+            fi
+        done
+        (( ${#entries[@]} == 0 )) && echo -ne "${two} ${Orange}Empty dir stack(a add,d delete,g go number,~num = dir)";
+
+        #Print newline for PS1
+        echo -e "${Reset}"
+    }
 
 
-# If enabled load aliases
-if [[ $DIRSTACK_ENABLED == true ]]; then
-    [ -v DIRSTACK_LIMIT ] || echo DIRSTACK_LIMIT must be a number
-    [ -v DIRSTACK_EXCLUDE ] || echo DIRSTACK_EXCLUDE must be a string
-    alias a="add_dir_stack true"
-    alias d=del_dir_stack
-    alias g=go_dir_stack
-    PROMPT_COMMAND+=';list_dir_stack'
-fi
+    # If enabled load aliases
+    if [[ $DIRSTACK_ENABLED == true ]]; then
+        [ -v DIRSTACK_LIMIT ] || echo DIRSTACK_LIMIT must be a number
+        [ -v DIRSTACK_EXCLUDE ] || echo DIRSTACK_EXCLUDE must be a string
+        alias a="add_dir_stack true"
+        alias d=del_dir_stack
+        alias g=go_dir_stack
+        PROMPT_COMMAND+=';list_dir_stack'
+    fi
 

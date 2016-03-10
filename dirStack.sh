@@ -12,7 +12,7 @@ DIRSTACK_LIMIT=5
 # Full paths to exclude from dir stack separated by colon
 DIRSTACK_EXCLUDE="/foobar:$HOME"
 #State for FSM (default excluded)
-DIRSTACK_STATE="exc"
+DIRSTACK_STATE=exc
 #"OLDPWD" for cd - wise operation (default null)
 DIRSTACK_OLDPWD=
 
@@ -26,11 +26,11 @@ add_dir_stack() {
     [[ -d $dir ]] || { echo "Dir $dir not found";return; }
     # If executed del_dir_stack and keep working in it...
     [[ $1 == false && $_DIR_STACK_LDIR == $dir ]] && return
-    _DIR_STACK_LDIR="$dir"
+    _DIR_STACK_LDIR=$dir
 
     # Push $DIRSTACK_OLDPWD 
     push_dir_stack() {
-        local dir="$1"
+        local dir=$1
         #Check duplicates
         readarray -t dup <<<"$(dirs -p -l 2>/dev/null)"
         #First entry (0) is always $PWD
@@ -47,22 +47,29 @@ add_dir_stack() {
     # new -> new = push old if allowed. set $DIRSTACK_OLDPWD = $OLDPWD
     # exc -> exc = push old. set $DIRSTACK_OLDPWD = 
     # new -> exc = push old. set $DIRSTACK_OLDPWD = OLDPWD
+    # $1 force (boolean)
+    # $2 path
     push_old_dir_stack() {
-        local dir="$1"
-        #exc -> new
-        if  [[ $DIRSTACK_STATE == exc ]]; then
-            if [[ -n $DIRSTACK_OLDPWD && $DIRSTACK_OLDPWD != $dir ]]; then 
-                push_dir_stack "$DIRSTACK_OLDPWD"
+        local dir=$2
+        #If force
+        if [[ $1 == true ]]; then
+            push_dir_stack "$dir"
+        else
+            #exc -> new
+            if  [[ $DIRSTACK_STATE == exc ]]; then
+                if [[ -n $DIRSTACK_OLDPWD && $DIRSTACK_OLDPWD != $dir ]]; then 
+                    push_dir_stack "$DIRSTACK_OLDPWD"
+                fi
+                DIRSTACK_OLDPWD=$dir
+            else #new -> new 
+                if [[ $DIRSTACK_OLDPWD != $OLDPWD && $DIRSTACK_OLDPWD != $dir ]]; then
+                    push_dir_stack "$DIRSTACK_OLDPWD"
+                fi
+                DIRSTACK_OLDPWD=$OLDPWD
             fi
-            DIRSTACK_OLDPWD="$dir"
-        else #new -> new 
-            if [[ $DIRSTACK_OLDPWD != $OLDPWD && $DIRSTACK_OLDPWD != $dir ]]; then
-                push_dir_stack "$DIRSTACK_OLDPWD"
-            fi
-            DIRSTACK_OLDPWD="$OLDPWD"
-        fi
 
-        DIRSTACK_STATE="new"
+            DIRSTACK_STATE=new
+        fi
     }
 
     #Set exclusions
@@ -76,13 +83,13 @@ add_dir_stack() {
                 [[ $DIRSTACK_OLDPWD != $OLDPWD ]] && push_dir_stack "$DIRSTACK_OLDPWD"
                 [[ $DIRSTACK_STATE = exc ]] && DIRSTACK_OLDPWD=  || DIRSTACK_OLDPWD=$OLDPWD
             fi
-            DIRSTACK_STATE="exc"
+            DIRSTACK_STATE=exc
             return
         fi
     done
 
     #Be savvy with the stack dirs then
-    push_old_dir_stack "$dir"
+    push_old_dir_stack $1 "$dir"
 }
 
 
@@ -123,59 +130,59 @@ del_dir_stack () {
             fi
         done
     done
-    }
+}
 
-    #Go to a dir stack number. 
-    go_dir_stack() { 
-        #Get absolute path
-        local dir="$(dirs -l +$1 2>/dev/null)"
-        [[ $dir ]] || { echo "Incorrect dir stack index or empty stack";return;}
-        cd "$dir" && echo Changed dir to "$dir"
-    }
+#Go to a dir stack number. 
+go_dir_stack() { 
+    #Get absolute path
+    local dir="$(dirs -l +$1 2>/dev/null)"
+    [[ $dir ]] || { echo "Incorrect dir stack index or empty stack";return;}
+    cd "$dir" && echo Changed dir to "$dir"
+}
 
-    #Show the dir stack below the bash prompt
-    list_dir_stack() {
-        [[ ${DIRSTACK_ENABLED} != true ]] && return
-        local cwd="$(pwd -P)"
-        add_dir_stack false "$cwd"
+#Show the dir stack below the bash prompt
+list_dir_stack() {
+    [[ ${DIRSTACK_ENABLED} != true ]] && return
+    local cwd="$(pwd -P)"
+    add_dir_stack false "$cwd"
 
-        local -a entries
-        local Orange='\e[00;33m'
-        local back='\e[00;44m'
-        local Reset='\e[00m'
-        local Green='\e[01;32m'
-        #Copy & Paste from any unicode table... 
-        local one=$(printf "%s" ✪)
-        local two=$(printf "%s" ✪)
-        local i=0 
+    local -a entries
+    local Orange='\e[00;33m'
+    local back='\e[00;44m'
+    local Reset='\e[00m'
+    local Green='\e[01;32m'
+    #Copy & Paste from any unicode table... 
+    local one=$(printf "%s" ✪)
+    local two=$(printf "%s" ✪)
+    local i=0 
 
-        echo -e "${Green}${one} $USER$(__git_ps1 "(%s)") on $TTY@$HOSTNAME($KERNEL)"
-        echo -ne "${Orange}${two} "
+    echo -e "${Green}${one} $USER$(__git_ps1 "(%s)") on $TTY@$HOSTNAME($KERNEL)"
+    echo -ne "${Orange}${two} "
 
-        #Discard first entry cause it's always $PWD
-        readarray -s 1 -t entries <<<"$(dirs -p -l 2>/dev/null)"
-        for i in ${!entries[@]}; do 
-            dir=${entries[$i]} 
-            if [[ $dir == $cwd ]]; then #Put background color
-                echo -ne "[${back}$((i+1)):${dir/$HOME/\~}${Orange}]";
-            else
-                echo -ne "[$((i+1)):${dir/$HOME/\~}]";
-            fi
-        done
-        (( ${#entries[@]} == 0 )) && echo -ne "${two} ${Orange}Empty dir stack(a add,d delete,g go number,~num = dir)";
+    #Discard first entry cause it's always $PWD
+    readarray -s 1 -t entries <<<"$(dirs -p -l 2>/dev/null)"
+    for i in ${!entries[@]}; do 
+        dir=${entries[$i]} 
+        if [[ $dir == $cwd ]]; then #Put background color
+            echo -ne "[${back}$((i+1)):${dir/$HOME/\~}${Orange}]";
+        else
+            echo -ne "[$((i+1)):${dir/$HOME/\~}]";
+        fi
+    done
+    (( ${#entries[@]} == 0 )) && echo -ne "${two} ${Orange}Empty dir stack(a add,d delete,g go number,~num = dir)";
 
-        #Print newline for PS1
-        echo -e "${Reset}"
-    }
+    #Print newline for PS1
+    echo -e "${Reset}"
+}
 
 
-    # If enabled load aliases
-    if [[ $DIRSTACK_ENABLED == true ]]; then
-        [ -v DIRSTACK_LIMIT ] || echo DIRSTACK_LIMIT must be a number
-        [ -v DIRSTACK_EXCLUDE ] || echo DIRSTACK_EXCLUDE must be a string
-        alias a="add_dir_stack true"
-        alias d=del_dir_stack
-        alias g=go_dir_stack
-        PROMPT_COMMAND+=';list_dir_stack'
-    fi
+# If enabled load aliases
+if [[ $DIRSTACK_ENABLED == true ]]; then
+    [ -v DIRSTACK_LIMIT ] || echo DIRSTACK_LIMIT must be a number
+    [ -v DIRSTACK_EXCLUDE ] || echo DIRSTACK_EXCLUDE must be a string
+    alias a="add_dir_stack true"
+    alias d=del_dir_stack
+    alias g=go_dir_stack
+    PROMPT_COMMAND+=';list_dir_stack'
+fi
 

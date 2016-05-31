@@ -23,7 +23,7 @@ $echo ". ~/yourDir/dirStack/dirStack.sh"  >> ~/.bashrc
 
 ##Use
 
-You cd into directories as normal and when you lost a directory from "cd -" it will be added to your dirStack automagically. 
+cd into directories and when you lost a directory from "cd -" it will be added to your dirStack automagically effortlessly.
 
 So:
 
@@ -69,11 +69,15 @@ $a ~/stuff
 ✪ [1:~/stuff][2:/var/log][3:/tmp]
 $g 1
 ✪ [1:~/stuff][2:/var/log][3:/tmp]
+$pwd
+~/stuff
+✪ [1:~/stuff][2:/var/log][3:/tmp]
 $d 1 3
 Deleted ~/stuff from dir stack
 Deleted /tmp from dir stack
 ✪ [1:/var/log]
-$
+$pwd
+~/stuff
 ...
 ```
 
@@ -88,27 +92,27 @@ yourstuf.log somedir/
 ...
 ```
 
-###Why not HOME?
+###Why not $HOME/$OLDPWD?
 
-Cause you can always use (~) for than but you can customize it with DIRSTACK_EXCLUDE bash variable.
+Cause you can always use (~ or ~-) for that but you can customize it with DIRSTACK_EXCLUDE bash variable.
 ```bash
-$DIRSTACK_EXCLUDE="/foobar:/tmp"
+DIRSTACK_EXCLUDE="/foobar:/tmp"
 ```
 
 ###How many dirs can it save?
 
 By default 5 but you can customize it. 
 ```bash
-$DIRSTACK_LIMIT=3
+DIRSTACK_LIMIT=3
 ```
 
 ###Can I disable it temporarily? 
 
+Sure.
 
 ```bash
-$DIRSTACK_ENABLED=false
+DIRSTACK_ENABLED=false
 ```
-
 
 
 ## TODO

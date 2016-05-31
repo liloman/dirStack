@@ -49,6 +49,8 @@ $pwd
 /tmp
 ```
 
+![dirStack working](screenshot.png)
+
 ##FAQ
 
 ###Can I go/add/delete a dirStack?
@@ -127,7 +129,7 @@ I love FSMs (Finite State Machine)!. :)
 
 ## TODO
 - [x] del with multiple arguments
-- [ ] Screenshots and ~~tutorial~~ (almost)
+- [x] Screenshots and tutorial
 - [ ] Unit testing? (bats)
 
 

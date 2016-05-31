@@ -47,6 +47,7 @@ dm    crash  empty  gopher
 $cp -rv ~3/ ~1/dm 
 ✪ [1:/var/log][2:/var][3:/tmp]
 $g 3
+Changed dir to /tmp
 ✪ [1:/var/log][2:/var][3:/tmp]
 $pwd
 /tmp
@@ -66,8 +67,10 @@ $d 2
 Deleted /var from dir stack
 ✪ [1:/var/log][2:/tmp]
 $a ~/stuff
+Added ~/stuff to dir stack
 ✪ [1:~/stuff][2:/var/log][3:/tmp]
 $g 1
+Changed dir to ~/stuff
 ✪ [1:~/stuff][2:/var/log][3:/tmp]
 $pwd
 ~/stuff
@@ -78,6 +81,11 @@ Deleted /tmp from dir stack
 ✪ [1:/var/log]
 $pwd
 ~/stuff
+✪ [1:/var/log]
+$a "/some/very C4p&4 and/large-.  /" 
+Added "/some/very C4p&4 and/large-.  " to dir stack
+✪[1:/some/very C4p&4 and/large-.  ][2:/var/log]
+$
 ...
 ```
 

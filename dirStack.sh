@@ -40,7 +40,7 @@ add_dir_stack() {
         for elem in "${dup[@]}"; do [[ $elem = $dir ]]&& { return; } done
         #Check limit
         (( ${#dup[@]} > $DIRSTACK_LIMIT )) && del_dir_stack $DIRSTACK_LIMIT silent  
-        pushd -n "$dir" >/dev/null; 
+        pushd -n "$dir" >/dev/null && echo Added "$dir" to dir stack
     }
 
     #Don't register $DIRSTACK_OLDPWD into dir stack till lost from cd - (OLDPWD)

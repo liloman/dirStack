@@ -15,6 +15,8 @@ DIRSTACK_EXCLUDE="/foobar:$HOME"
 DIRSTACK_STATE=exc
 #"OLDPWD" for cd - wise operation (default null)
 DIRSTACK_OLDPWD=
+#Include header
+DIRSTACK_HEADER=false
 
 
 
@@ -156,8 +158,11 @@ list_dir_stack() {
     local two=$(printf "%s" ✪)
     local i=0 
 
-    echo -e "${Green}${one} $USER$(__git_ps1 "(%s)") on $TTY@$HOSTNAME($KERNEL)"
-    echo -ne "${Orange}${two} "
+
+    if [[ $DIRSTACK_HEADER == true ]]; then
+        echo -e "${Green}${one} $USER$(__git_ps1 "(%s)") on $TTY@$HOSTNAME($KERNEL)"
+    fi
+    echo -ne "${Green}${two} ${Orange}"
 
     #Discard first entry cause it's always $PWD
     readarray -s 1 -t entries <<<"$(dirs -p -l 2>/dev/null)"
@@ -169,7 +174,7 @@ list_dir_stack() {
             echo -ne "[$((i+1)):${dir/$HOME/\~}]";
         fi
     done
-    (( ${#entries[@]} == 0 )) && echo -ne "${two} ${Orange}Empty dir stack(a add,d delete,g go number,~num = dir)";
+    (( ${#entries[@]} == 0 )) && echo -ne "Empty dir stack(a add,d delete,g go number,~num = dir)";
 
     #Print newline for PS1
     echo -e "${Reset}"

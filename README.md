@@ -1,14 +1,6 @@
+Have you find yourself struggling to remember/work with a dirpath? 
 
-#dirStack
-============
-
-Plugin for bash prompt for dir bookmarking.
-[dir bookmarks](http://vincent.bernat.im/en/blog/2015-zsh-directory-bookmarks.html)
-
-The perfect complement for [z](https://github.com/rupa/z)
-
-Never ever lost an old cd dir again.
-
+dirstack makes dir stacking/bookmarking **effortless**.
 
 ##INSTALL
 
@@ -122,6 +114,11 @@ Sure.
 DIRSTACK_ENABLED=false
 ```
 
+##Why?
+
+[Because you need it](http://vincent.bernat.im/en/blog/2015-zsh-directory-bookmarks.html).
+
+The perfect complement for [z](https://github.com/rupa/z).
 
 ## TODO
 - [x] del with multiple arguments

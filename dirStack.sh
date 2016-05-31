@@ -33,6 +33,7 @@ add_dir_stack() {
     # Push $DIRSTACK_OLDPWD 
     push_dir_stack() {
         local dir=$1
+        local msg=$2
         #Check duplicates
         readarray -t dup <<<"$(dirs -p -l 2>/dev/null)"
         #First entry (0) is always $PWD
@@ -40,7 +41,8 @@ add_dir_stack() {
         for elem in "${dup[@]}"; do [[ $elem = $dir ]]&& { return; } done
         #Check limit
         (( ${#dup[@]} > $DIRSTACK_LIMIT )) && del_dir_stack $DIRSTACK_LIMIT silent  
-        pushd -n "$dir" >/dev/null && echo Added "$dir" to dir stack
+        pushd -n "$dir" >/dev/null 
+        [[ $? == 0 && $msg == true ]] && echo Added "$dir" to dir stack
     }
 
     #Don't register $DIRSTACK_OLDPWD into dir stack till lost from cd - (OLDPWD)
@@ -55,7 +57,7 @@ add_dir_stack() {
         local dir=$2
         #If force
         if [[ $1 == true ]]; then
-            push_dir_stack "$dir"
+            push_dir_stack "$dir" true
         else
             #exc -> new
             if  [[ $DIRSTACK_STATE == exc ]]; then

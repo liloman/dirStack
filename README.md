@@ -49,7 +49,7 @@ $pwd
 /tmp
 ```
 
-![dirStack working](screenshot.png)
+![dirStack working](/screenshot.png)
 
 ##FAQ
 

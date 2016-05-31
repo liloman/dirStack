@@ -1,6 +1,10 @@
-Have you find yourself struggling to remember/work with a dirpath? 
+Bash dir stacking/bookmarking **made easy**.
 
-dirstack makes dir stacking/bookmarking **effortless**.
+##Why?
+
+[Because you need it](http://vincent.bernat.im/en/blog/2015-zsh-directory-bookmarks.html).
+
+dirStack is [z](https://github.com/rupa/z) for current session. So you use z for that path you entered thousand times the last 4 years and use dirStack for *your n last entered dirs* on that session.
 
 ##INSTALL
 
@@ -113,12 +117,6 @@ Sure.
 ```bash
 DIRSTACK_ENABLED=false
 ```
-
-##Why?
-
-[Because you need it](http://vincent.bernat.im/en/blog/2015-zsh-directory-bookmarks.html).
-
-The perfect complement for [z](https://github.com/rupa/z).
 
 ## TODO
 - [x] del with multiple arguments

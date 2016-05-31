@@ -118,6 +118,13 @@ Sure.
 DIRSTACK_ENABLED=false
 ```
 
+## How does it work?
+
+It's a 100% bash script FSM with neat use of the push/popd builtins. 
+
+I love FSMs (Finite State Machine)!. :)
+
+
 ## TODO
 - [x] del with multiple arguments
 - [ ] Screenshots and ~~tutorial~~ (almost)

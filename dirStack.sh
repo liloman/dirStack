@@ -117,8 +117,8 @@ del_dir_stack () {
             (( ${#dirs[@]} == 0 )) && { echo "PWD not in dir stack"; return; }
         else
             dest=$(dirs -l +$args 2>/dev/null)
+            [[ -z $dest ]] && { echo "Incorrect dir stack index ($args) or empty stack";return; }
             dir=$(realpath -P "$dest" 2>/dev/null)
-            [[ $dir ]] || { echo "Incorrect dir stack index ($args) or empty stack";return; }
             dirs["$dir"]=del
         fi
     done

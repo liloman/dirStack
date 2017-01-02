@@ -153,14 +153,17 @@ list_dir_stack() {
     local -a entries
     local Orange='\e[00;33m'
     local back='\e[00;44m'
+    local deleted='\e[00;41m'
     local Reset='\e[00m'
     local Green='\e[01;32m'
     #Copy & Paste from any unicode table... 
     local one=$(printf "%s" ✪)
     local two=$(printf "%s" ✪)
     local i=0 
-
-
+    local OLD=${OLDPWD/$HOME/\~}
+    (( ${#OLD} > 20 )) && OLD=...${OLD: -20}
+    [[ -n $OLD ]] && OLD="(P:$OLD)"
+    
     if [[ $DIRSTACK_HEADER == true ]]; then
         echo -e "${Green}${one} $USER$(__git_ps1 "(%s)") on $TTY@$HOSTNAME($KERNEL)"
     fi
@@ -169,14 +172,18 @@ list_dir_stack() {
     #Discard first entry cause it's always $PWD
     readarray -s 1 -t entries <<<"$(dirs -p -l 2>/dev/null)"
     for i in ${!entries[@]}; do 
+        (($i == 0)) && echo -ne "$OLD"
         dir=${entries[$i]} 
-        if [[ $dir == $cwd ]]; then #Put background color
+        #Show deleted on red
+        if [[ ! -e $dir ]]; then #Put background color
+            echo -ne "[${deleted}$((i+1)):${dir/$HOME/\~}${Orange}]";
+        elif [[ $dir == $cwd ]]; then #Put background color
             echo -ne "[${back}$((i+1)):${dir/$HOME/\~}${Orange}]";
         else
             echo -ne "[$((i+1)):${dir/$HOME/\~}]";
         fi
     done
-    (( ${#entries[@]} == 0 )) && echo -ne "Empty dir stack(a add,d delete,g go number,~num = dir)";
+    (( ${#entries[@]} == 0 )) && echo -ne "$OLD Empty dir stack(a add,d delete,g go number,~num = dir)";
 
     #Print newline for PS1
     echo -e "${Reset}"

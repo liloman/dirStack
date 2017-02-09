@@ -108,7 +108,7 @@ del_dir_stack () {
     for args; do
         [[ $args = actual || $args == 0 || $args == silent ]] && break
         #if the user wants to delete actual dir
-        if [[ $args = x ]]; then
+        if [[ $args = . ]]; then
             dir=$(realpath -P "." 2>/dev/null)
             #Discard first entry cause it's always $PWD
             readarray -s 1 -t entries <<<"$(dirs -p -l 2>/dev/null)"
@@ -119,7 +119,8 @@ del_dir_stack () {
             dest=$(dirs -l +$args 2>/dev/null)
             [[ -z $dest ]] && { echo "Incorrect dir stack index ($args) or empty stack";return; }
             dir=$(realpath -P "$dest" 2>/dev/null)
-            dirs["$dir"]=del
+            #not able to get the realpath so the user passed a deleted dir 
+            [[ -n $dir ]] && dirs["$dir"]=del || dirs["$dest"]=del
         fi
     done
 

@@ -161,7 +161,8 @@ list_dir_stack() {
     local one=$(printf "%s" ✪)
     local two=$(printf "%s" ✪)
     local i=0 
-    local OLD=${OLDPWD/$HOME/\~}
+    local opwd="$(realpath -P "$OLDPWD" 2>/dev/null)"
+    local OLD=${opwd/$HOME/\~}
     (( ${#OLD} > 20 )) && OLD=...${OLD: -20}
     [[ -n $OLD ]] && OLD="(P:$OLD)"
     

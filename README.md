@@ -86,6 +86,25 @@ Added "/some/very C4p&4 and/large-.  " to dir stack
 $
 ...
 ```
+###Can I seek forward/backward a dirStack?
+
+Absolutely!
+
+It includes the bash aliases (gf,gb).
+
+```bash
+✪ Empty dir stack(a add,d delete,g go number,~num = dir)
+mkdir -p /tmp/a/b/c/d
+✪ Empty dir stack(a add,d delete,g go number,~num = dir)
+a /tmp/a/b/c/d; a /tmp/a/; a /tmp/a/b; a /tmp/a/b/c; 
+✪ [1:~][2:/tmp/a][3:/tmp/a/b][4:/tmp/a/b/c][5:/tmp/a/b/c/d/e]
+gf a c$
+✪ [1:~][2:/tmp/a][3:/tmp/a/b][4:/tmp/a/b/c][5:/tmp/a/b/c/d/e]
+gb a 
+✪ [1:~][2:/tmp/a][3:/tmp/a/b][4:/tmp/a/b/c][5:/tmp/a/b/c/d/e]
+gf d$
+...
+```
 
 ###Does it work with autocompletion?
 
@@ -130,6 +149,8 @@ I love FSMs (Finite State Machine)!. :)
 ## TODO
 - [x] del with multiple arguments
 - [x] Screenshots and tutorial
+- [x] Seek forward and backward in your current dir
+- [ ] Add bookmarks (am/gm?)
 - [ ] Unit testing? (bats)
 
 

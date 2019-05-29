@@ -191,6 +191,54 @@ list_dir_stack() {
     echo -e "${Reset}"
 }
 
+#Seek forward and change dir in your current path an expresion
+go_forward() {
+    [[ ${DIRSTACK_ENABLED} != true ]] && return
+    local cwd="$(pwd -P)" dir=
+    [[ $1 ]] || { echo "You need to pass at least an argument"; return 1; }
+    local dest='.*'
+    for arg; do dest+="$arg.*"; done
+    local -a entries
+   
+    #Read entries
+    readarray -t entries <<<"$(dirs -p -l 2>/dev/null)"
+    for i in ${!entries[@]}; do 
+        dir=${entries[$i]} 
+
+        #Not deleted dir
+        if [[ -e $dir &&  $dir =~ $cwd/$dest ]]; then 
+            #echo "$dir is a match for $dest"
+            cd $dir
+            return 0;
+        fi
+    done
+    return 1;
+}
+
+#Seek backward and change dir in your current path an expresion
+go_backward() {
+    [[ ${DIRSTACK_ENABLED} != true ]] && return
+    local cwd="$(pwd -P)" dir=
+    [[ $1 ]] || { echo "You need to pass at least an argument"; return 1; }
+    local dest='.*'
+    for arg; do dest+="$arg.*"; done
+    local -a entries
+   
+    #Read entries
+    readarray -t entries <<<"$(dirs -p -l 2>/dev/null)"
+    for i in ${!entries[@]}; do 
+        dir=${entries[$i]} 
+
+        #Not deleted dir
+        if [[ -e $dir && $cwd == $dir/* &&  $dir =~ .*$dest.* ]]; then
+            #echo "$dir is a match for $dest"
+            cd $dir
+            return 0;
+        fi
+    done
+    return 1;
+}
+
 
 # If enabled load aliases
 if [[ $DIRSTACK_ENABLED == true ]]; then
@@ -199,6 +247,8 @@ if [[ $DIRSTACK_ENABLED == true ]]; then
     alias a="add_dir_stack true"
     alias d=del_dir_stack
     alias g=go_dir_stack
+    alias gf=go_forward 
+    alias gb=go_backward
     PROMPT_COMMAND+=';list_dir_stack'
 fi
 
